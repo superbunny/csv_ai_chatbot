@@ -49,7 +49,7 @@ An AI-powered web application that lets you chat with your CSV data using natura
    Create a `.env` file in the project root:
    ```env
    GOOGLE_API_KEY=your_gemini_api_key_here
-   GEMINI_MODEL=gemini-2.5-flash
+   GEMINI_MODEL=gemini-3-flash-preview
    ```
 
 5. **Run the application**
