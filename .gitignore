@@ -17,6 +17,7 @@ __pycache__/
 uploads/
 visualizations/
 *.csv
+!testdata/*.csv
 
 # IDE
 .vscode/
