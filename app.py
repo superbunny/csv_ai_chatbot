@@ -98,8 +98,8 @@ def upload_file():
         info = analyzer.dataframe_info()
         
         
-        # Get preview data (first 10 rows)
-        preview_data = df.head(10).to_dict('records')
+        # Get preview data (first 100 rows for pagination)
+        preview_data = df.head(100).to_dict('records')
         
         # Clean NaN values from dict (to_dict converts None back to nan)
         import math
