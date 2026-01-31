@@ -25,6 +25,9 @@ const dataPanel = document.querySelector('.data-panel');
 let currentFile = null;
 let isLoading = false;
 let isDragging = false;
+let currentPage = 0;
+let rowsPerPage = 10;
+let totalRows = [];
 
 // Panel Resizing
 if (panelDivider && chatPanel) {
@@ -144,6 +147,10 @@ function updateDashboardWithFileData(fileData) {
 
     // Update data table
     if (preview && preview.columns && preview.rows) {
+        // Store all rows for pagination
+        totalRows = preview.rows;
+        currentPage = 0;
+
         // Update table headers
         const tableHead = document.querySelector('.data-table thead tr');
         tableHead.innerHTML = '';
@@ -153,33 +160,52 @@ function updateDashboardWithFileData(fileData) {
             tableHead.appendChild(th);
         });
 
-        // Update table body
-        dataTableBody.innerHTML = '';
-        preview.rows.forEach(row => {
-            const tr = document.createElement('tr');
-            preview.columns.forEach(col => {
-                const td = document.createElement('td');
-                const value = row[col];
-
-                // Format the value
-                if (value === null || value === undefined) {
-                    td.textContent = '—';
-                    td.style.color = 'var(--text-muted)';
-                } else {
-                    td.textContent = value;
-                }
-
-                tr.appendChild(td);
-            });
-            dataTableBody.appendChild(tr);
-        });
-
-        // Update row count
-        const rowCountEl = document.querySelector('.row-count');
-        if (rowCountEl) {
-            rowCountEl.textContent = `Showing ${preview.rows.length} of ${info.shape.rows.toLocaleString()} rows`;
-        }
+        // Render first page
+        renderTablePage();
     }
+}
+
+function renderTablePage() {
+    const preview = currentFile?.preview;
+    if (!preview || !totalRows.length) return;
+
+    const startIdx = currentPage * rowsPerPage;
+    const endIdx = Math.min(startIdx + rowsPerPage, totalRows.length);
+    const pageRows = totalRows.slice(startIdx, endIdx);
+
+    // Clear table body
+    dataTableBody.innerHTML = '';
+
+    // Render rows for current page
+    pageRows.forEach(row => {
+        const tr = document.createElement('tr');
+        preview.columns.forEach(col => {
+            const td = document.createElement('td');
+            const value = row[col];
+
+            // Format the value
+            if (value === null || value === undefined) {
+                td.textContent = '—';
+                td.style.color = 'var(--text-muted)';
+            } else {
+                td.textContent = value;
+            }
+
+            tr.appendChild(td);
+        });
+        dataTableBody.appendChild(tr);
+    });
+
+    // Update row count and pagination buttons
+    const rowCountEl = document.querySelector('.row-count');
+    if (rowCountEl) {
+        const info = currentFile?.info;
+        const showing = `${startIdx + 1}-${endIdx}`;
+        rowCountEl.textContent = `Showing ${showing} of ${info?.shape.rows.toLocaleString() || totalRows.length} rows`;
+    }
+
+    // Update pagination button states
+    updatePaginationButtons();
 }
 
 // Chat Functions
@@ -363,6 +389,59 @@ if (exportBtn) {
             exportBtn.style.background = '';
         }, 2000);
     });
+}
+
+// Pagination functionality
+const pageButtons = document.querySelectorAll('.page-btn');
+if (pageButtons.length >= 2) {
+    const prevBtn = pageButtons[0];
+    const nextBtn = pageButtons[1];
+
+    prevBtn.addEventListener('click', () => {
+        if (currentPage > 0) {
+            currentPage--;
+            renderTablePage();
+        }
+    });
+
+    nextBtn.addEventListener('click', () => {
+        const maxPage = Math.ceil(totalRows.length / rowsPerPage) - 1;
+        if (currentPage < maxPage) {
+            currentPage++;
+            renderTablePage();
+        }
+    });
+}
+
+function updatePaginationButtons() {
+    const pageButtons = document.querySelectorAll('.page-btn');
+    if (pageButtons.length >= 2) {
+        const prevBtn = pageButtons[0];
+        const nextBtn = pageButtons[1];
+        const maxPage = Math.ceil(totalRows.length / rowsPerPage) - 1;
+
+        // Disable/enable previous button
+        if (currentPage === 0) {
+            prevBtn.disabled = true;
+            prevBtn.style.opacity = '0.3';
+            prevBtn.style.cursor = 'not-allowed';
+        } else {
+            prevBtn.disabled = false;
+            prevBtn.style.opacity = '1';
+            prevBtn.style.cursor = 'pointer';
+        }
+
+        // Disable/enable next button
+        if (currentPage >= maxPage) {
+            nextBtn.disabled = true;
+            nextBtn.style.opacity = '0.3';
+            nextBtn.style.cursor = 'not-allowed';
+        } else {
+            nextBtn.disabled = false;
+            nextBtn.style.opacity = '1';
+            nextBtn.style.cursor = 'pointer';
+        }
+    }
 }
 
 // Utility function to escape HTML
