@@ -375,22 +375,6 @@ if (newChatBtn) {
     });
 }
 
-// Export functionality
-const exportBtn = document.querySelector('.export-btn');
-if (exportBtn) {
-    exportBtn.addEventListener('click', () => {
-        console.log('Exporting report...');
-        const originalText = exportBtn.innerHTML;
-        exportBtn.innerHTML = '<span class="material-icons">check_circle</span>Exported!';
-        exportBtn.style.background = 'var(--status-green)';
-
-        setTimeout(() => {
-            exportBtn.innerHTML = originalText;
-            exportBtn.style.background = '';
-        }, 2000);
-    });
-}
-
 // Pagination functionality
 const pageButtons = document.querySelectorAll('.page-btn');
 if (pageButtons.length >= 2) {
