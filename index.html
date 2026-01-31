@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV Chatbot - Chat with your Data</title>
+    <meta name="description"
+        content="Upload a CSV to generate insights, visualize trends, and perform complex analysis using natural language.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css?v=20260130">
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <span class="logo">CSV AI</span>
+        </div>
+        <div class="header-right">
+            <button class="icon-btn" aria-label="History">
+                <span class="material-icons">history</span>
+            </button>
+            <button class="icon-btn" aria-label="Settings">
+                <span class="material-icons">settings</span>
+            </button>
+            <button class="icon-btn" aria-label="Profile">
+                <span class="material-icons">account_circle</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Home Screen -->
+    <main id="homeScreen" class="home-screen">
+        <div class="home-content">
+            <h1 class="hero-title">Chat with your Data</h1>
+            <p class="hero-subtitle">Upload a CSV to generate insights, visualize trends, and perform complex analysis
+                using natural language.</p>
+
+            <div class="search-bar">
+                <button class="upload-btn" id="uploadBtn">
+                    <span class="material-icons">upload_file</span>
+                    Upload CSV
+                </button>
+                <input type="text" placeholder="Ask a question about your data..." class="search-input"
+                    id="searchInput">
+                <button class="send-btn" aria-label="Send" id="sendBtn">
+                    <span class="material-icons">arrow_forward</span>
+                </button>
+            </div>
+
+            <div class="quick-start-cards">
+                <div class="quick-card" data-prompt="Identify key patterns and movements in this dataset">
+                    <div class="card-icon">
+                        <span class="material-icons">analytics</span>
+                    </div>
+                    <h3 class="card-title">Summarize trends</h3>
+                    <p class="card-description">Identify key patterns and movements in this dataset.</p>
+                </div>
+                <div class="quick-card" data-prompt="Detect anomalies in the salary column automatically">
+                    <div class="card-icon">
+                        <span class="material-icons">warning</span>
+                    </div>
+                    <h3 class="card-title">Find outliers</h3>
+                    <p class="card-description">Detect anomalies in the salary column automatically.</p>
+                </div>
+                <div class="quick-card" data-prompt="What is the correlation between age and revenue?">
+                    <div class="card-icon">
+                        <span class="material-icons">scatter_plot</span>
+                    </div>
+                    <h3 class="card-title">Correlation check</h3>
+                    <p class="card-description">What is the correlation between age and revenue?</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Dashboard Screen -->
+    <div id="dashboardScreen" class="dashboard-screen hidden">
+        <!-- Left Panel: Chat -->
+        <aside class="chat-panel">
+            <div class="chat-header">
+                <div>
+                    <h2 class="chat-title">Chat Analysis</h2>
+                    <p class="chat-session">Session #7401</p>
+                </div>
+                <button class="icon-btn" aria-label="Minimize">
+                    <span class="material-icons">remove</span>
+                </button>
+            </div>
+
+            <div class="chat-messages" id="chatMessages">
+                <!-- Messages will be added dynamically by JavaScript -->
+            </div>
+
+            <div class="chat-input-area">
+                <textarea class="chat-input" placeholder="Ask a follow-up question..." rows="2"></textarea>
+                <button class="send-message-btn">
+                    <span class="material-icons">send</span>
+                </button>
+            </div>
+
+            <div class="chat-footer">
+                <button class="text-btn">Clear chat history</button>
+                <button class="text-btn primary">Start a new chat</button>
+            </div>
+        </aside>
+
+        <!-- Resizable Divider -->
+        <div class="panel-divider" id="panelDivider">
+            <div class="divider-handle"></div>
+        </div>
+
+        <!-- Right Panel: Dashboard -->
+        <section class="data-panel">
+            <div class="data-header">
+                <div class="file-info">
+                    <span class="material-icons file-icon">description</span>
+                    <div>
+                        <h3 class="file-name">Q4_Sales_Data.csv</h3>
+                        <p class="file-size">4.2 MB</p>
+                    </div>
+                </div>
+                <button class="export-btn">
+                    <span class="material-icons">download</span>
+                    Export Report
+                </button>
+            </div>
+
+            <div class="stats-bar">
+                <div class="stat-card">
+                    <p class="stat-label">Total Rows</p>
+                    <p class="stat-value">12,405</p>
+                </div>
+                <div class="stat-card">
+                    <p class="stat-label">Total Columns</p>
+                    <p class="stat-value">18</p>
+                </div>
+                <div class="stat-card">
+                    <p class="stat-label">Missing Values</p>
+                    <p class="stat-value">24 (0.2%)</p>
+                </div>
+                <div class="stat-card">
+                    <p class="stat-label">File Size</p>
+                    <p class="stat-value">4.2 MB</p>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <!-- Column headers will be populated dynamically -->
+                        </tr>
+                    </thead>
+                    <tbody id="dataTableBody">
+                        <!-- Table rows will be populated dynamically from uploaded CSV -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="table-footer">
+                <p class="row-count">Showing 8 of 12,405 rows</p>
+                <div class="pagination">
+                    <button class="page-btn" aria-label="Previous">
+                        <span class="material-icons">chevron_left</span>
+                    </button>
+                    <button class="page-btn" aria-label="Next">
+                        <span class="material-icons">chevron_right</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="script.js?v=20260130"></script>
+</body>
+
+</html>
