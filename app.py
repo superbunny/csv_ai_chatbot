@@ -130,6 +130,10 @@ def upload_file():
 @app.route('/api/chat', methods=['POST'])
 def chat():
     """Handle chat requests with Gemini AI."""
+    import json
+    from google.generativeai import protos
+    import google.ai.generativelanguage as glm
+    
     try:
         data = request.json
         user_message = data.get('message', '').strip()
@@ -153,10 +157,61 @@ def chat():
             'content': user_message
         })
         
-        # Create Gemini model with tools
+        # Create Gemini model with tools  
+        # Convert tool definitions to proper FunctionDeclaration format
+        
+        function_declarations = []
+        for tool in TOOLS:
+            # Convert parameters dict to Schema
+            params_dict = tool['parameters']
+            properties = {}
+            
+            for prop_name, prop_def in params_dict.get('properties', {}).items():
+                # Convert property definition to Schema
+                prop_type = prop_def.get('type', 'string')
+                type_mapping = {
+                    'string': protos.Type.STRING,
+                    'array': protos.Type.ARRAY,
+                    'object': protos.Type.OBJECT,
+                    'number': protos.Type.NUMBER,
+                    'integer': protos.Type.INTEGER,
+                    'boolean': protos.Type.BOOLEAN
+                }
+                
+                # Build Schema kwargs dynamically (only add non-None values)
+                prop_schema_kwargs = {
+                    'type': type_mapping.get(prop_type, protos.Type.STRING)
+                }
+                if 'description' in prop_def:
+                    prop_schema_kwargs['description'] = prop_def['description']
+                if 'enum' in prop_def:
+                    prop_schema_kwargs['enum'] = prop_def['enum']
+                if 'items' in prop_def:
+                    items_type = prop_def['items'].get('type', 'string')
+                    prop_schema_kwargs['items'] = protos.Schema(
+                        type=type_mapping.get(items_type, protos.Type.STRING)
+                    )
+                
+                properties[prop_name] = protos.Schema(**prop_schema_kwargs)
+            
+            parameters_schema = protos.Schema(
+                type=protos.Type.OBJECT,
+                properties=properties,
+                required=params_dict.get('required', [])
+            )
+            
+            func_dec = protos.FunctionDeclaration(
+                name=tool['name'],
+                description=tool['description'],
+                parameters=parameters_schema
+            )
+            function_declarations.append(func_dec)
+        
+        tool_declarations = [protos.Tool(function_declarations=function_declarations)]
+        
         model = genai.GenerativeModel(
             model_name=GEMINI_MODEL,
-            tools=[TOOLS]
+            tools=tool_declarations
         )
         
         # Build conversation history for Gemini in the correct format
@@ -210,17 +265,27 @@ You have access to analysis tools to help answer questions about this data. Use 
                 function_name = function_call.name
                 function_args = dict(function_call.args)
                 
+                print(f"DEBUG: Calling function: {function_name} with args: {function_args}")
+                
                 # Execute the function
-                if function_name == 'dataframe_info':
-                    result = analyzer.dataframe_info()
-                elif function_name == 'statistical_summary':
-                    result = analyzer.statistical_summary(**function_args)
-                elif function_name == 'python_analysis':
-                    result = analyzer.python_analysis(**function_args)
-                elif function_name == 'create_visualization':
-                    result = analyzer.create_visualization(**function_args)
-                else:
-                    result = {"error": f"Unknown function: {function_name}"}
+                try:
+                    if function_name == 'dataframe_info':
+                        result = analyzer.dataframe_info()
+                    elif function_name == 'statistical_summary':
+                        result = analyzer.statistical_summary(**function_args)
+                    elif function_name == 'python_analysis':
+                        result = analyzer.python_analysis(**function_args)
+                    elif function_name == 'create_visualization':
+                        result = analyzer.create_visualization(**function_args)
+                    else:
+                        result = {"error": f"Unknown function: {function_name}"}
+                    
+                    print(f"DEBUG: Function {function_name} returned: {str(result)[:200]}...")
+                except Exception as func_error:
+                    print(f"DEBUG: Function {function_name} failed: {func_error}")
+                    import traceback
+                    traceback.print_exc()
+                    result = {"error": f"Function execution failed: {str(func_error)}"}
                 
                 function_responses.append({
                     'function': function_name,
@@ -229,14 +294,27 @@ You have access to analysis tools to help answer questions about this data. Use 
                 })
                 
                 # Send function result back to Gemini
+                # Convert result to JSON and back to ensure all types are serializable
+                # This handles numpy types, integer keys, etc.
+                try:
+                    json_str = json.dumps(result, default=str)
+                    serializable_result = json.loads(json_str)
+                except Exception as json_error:
+                    print(f"DEBUG: JSON conversion failed: {json_error}, using string conversion")
+                    serializable_result = {"data": str(result)}
+                
+                print(f"DEBUG: Sending serializable result: {str(serializable_result)[:200]}...")
+                
                 response = chat.send_message(
-                    genai.protos.Content(
-                        parts=[genai.protos.Part(
-                            function_response=genai.protos.FunctionResponse(
-                                name=function_name,
-                                response={'result': result}
+                    glm.Content(
+                        parts=[
+                            glm.Part(
+                                function_response=glm.FunctionResponse(
+                                    name=function_name,
+                                    response={"result": serializable_result}
+                                )
                             )
-                        )]
+                        ]
                     )
                 )
             else:
@@ -272,6 +350,9 @@ You have access to analysis tools to help answer questions about this data. Use 
         })
         
     except Exception as e:
+        import traceback
+        error_trace = traceback.format_exc()
+        print(f"CHAT ERROR TRACEBACK:\n{error_trace}")
         return jsonify({'error': f'Chat error: {str(e)}'}), 500
 
 

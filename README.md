@@ -81,6 +81,22 @@ The AI will:
 - Provide statistical summaries
 - Execute custom data analysis
 
+## 🧪 Test Data & Sample Questions
+
+A sample Titanic dataset is included in the `testdata/` folder for testing the chatbot.
+
+### Sample Questions to Try:
+- "Among female passengers, the survival rates by class"
+- "What are the main trends in this dataset?"
+- "Show me a bar chart of survival rates by passenger class"
+- "What's the correlation between age and fare?"
+- "Create a visualization showing the distribution of ages"
+
+### Using the Test Data:
+1. Upload `testdata/titanic.csv` via the web interface
+2. Try the sample questions above
+3. Experiment with your own questions!
+
 ## 🏗️ Project Structure
 
 ```
@@ -95,6 +111,8 @@ csv-ai-chatbot/
 ├── .gitignore            # Git ignore file
 ├── uploads/              # Uploaded CSV files (auto-created)
 ├── visualizations/       # Generated chart images (auto-created)
+├── testdata/             # Sample test datasets
+│   └── titanic.csv       # Titanic dataset for testing
 └── README.md             # This file
 ```
 
