@@ -68,10 +68,8 @@ Click the "Upload CSV" button and select your CSV file (max 100MB)
 
 ### 2. Ask Questions
 Try questions like:
-- "What are the main trends in this dataset?"
 - "Show me a bar chart of sales by region"
 - "What's the correlation between age and revenue?"
-- "Find outliers in the salary column"
 - "Calculate the average revenue per month"
 
 ### 3. View Results
