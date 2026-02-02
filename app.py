@@ -401,7 +401,9 @@ def index():
 @app.route('/<path:path>')
 def serve_static(path):
     """Serve static files."""
-    return send_file(path)
+    if os.path.exists(path):
+        return send_file(path)
+    return jsonify({'error': 'File not found'}), 404
 
 
 if __name__ == '__main__':
