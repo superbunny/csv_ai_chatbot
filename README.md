@@ -22,7 +22,7 @@ An AI-powered web application that lets you chat with your CSV data using natura
 
 ### Prerequisites
 
-- Python 3.9 or higher
+- Python 3.9 or higher (Recommended Python 3.13)
 - Google Gemini API key ([Get one here](https://ai.google.dev/))
 
 ### Installation
